@@ -1,9 +1,7 @@
 package com.exmple.grpc.greeting.server;
 
-import com.proto.greet.GreetRequest;
-import com.proto.greet.GreetResponse;
+import com.proto.greet.*;
 import com.proto.greet.GreetServiceGrpc.GreetServiceImplBase;
-import com.proto.greet.Greeting;
 import io.grpc.stub.StreamObserver;
 
 public class GreetServiceImpl extends GreetServiceImplBase {
@@ -26,4 +24,26 @@ public class GreetServiceImpl extends GreetServiceImplBase {
         responseObserver.onCompleted();
         //super.greet(request, responseObserver);
     }
-}
+
+    @Override
+    public void greetManyTimes(GreetManyTimesRequest request, StreamObserver<GreetManyTimesResponse> responseObserver) {
+        String firstName = request.getGreeting().getFirstName();
+
+        try {
+            for (int i = 0; i < 10; i++) {
+                String result = "Hello " + firstName + ", response number: " + i;
+                GreetManyTimesResponse response = GreetManyTimesResponse.newBuilder()
+                        .setResult(result)
+                        .build();
+
+                responseObserver.onNext(response);
+                Thread.sleep(1000L);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            responseObserver.onCompleted();
+        }
+    }
+    }
+
