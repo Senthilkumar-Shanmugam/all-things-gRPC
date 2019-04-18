@@ -48,6 +48,7 @@ repositories {
 }
 
 // if you have source imports issues, add the below
+/*
 sourceSets.main.java.srcDir new File(buildDir, 'generated/source')
 idea {
     module {
@@ -55,3 +56,4 @@ idea {
         generatedSourceDirs += file('build/generated/source')
     }
 }
+*/
