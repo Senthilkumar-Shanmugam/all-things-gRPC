@@ -3,10 +3,13 @@ package com.exmaple.grpc.greeting.client;
 import com.proto.dummy.DummyServiceGrpc.DummyServiceBlockingStub;
 import com.proto.dummy.DummyServiceGrpc;
 import com.proto.greet.*;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -17,7 +20,6 @@ public class GreetingClient {
 
     public static void main(String[] args) {
         System.out.println("Hi from Greetings client");
-
         GreetingClient client = new GreetingClient();
         client.run();
     }
@@ -28,11 +30,11 @@ public class GreetingClient {
                 .usePlaintext()//to disable default
                 .build();
 
-        //doUnaryCall(channel);
+        doUnaryCall(channel);
         //doServerStreamingCall(channel);
         //doClientStreamingCall(channel);
-        doBiDirectionalStreamingCall(channel);
-
+        //doBiDirectionalStreamingCall(channel);
+         //doUnaryCallWithDeadline(channel);
 
         //shutdown
         System.out.println("shutting down chaneel");
@@ -40,6 +42,43 @@ public class GreetingClient {
 
 
     }
+
+    private void doUnaryCallWithDeadline(ManagedChannel channel) {
+         GreetServiceGrpc.GreetServiceBlockingStub blockingStub = GreetServiceGrpc.newBlockingStub(channel);
+
+        // first call (3000 ms deadline)
+        try {
+            System.out.println("Sending a request with a deadline of 3000 ms");
+            GreetWithDeadlineResponse response = blockingStub.withDeadlineAfter(3000, TimeUnit.MILLISECONDS)
+                                                .greetWithDeadline(GreetWithDeadlineRequest.newBuilder()
+                                                .setGreeting(Greeting.newBuilder().setFirstName("Stephane")).build());
+
+            System.out.println(response.getResponse());
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+                System.out.println("Deadline has been exceeded, we don't want the response");
+            } else {
+                e.printStackTrace();
+            }
+        }
+
+
+        // second call (100 ms deadline)
+        try {
+            System.out.println("Sending a request with a deadline of 100 ms");
+            GreetWithDeadlineResponse response = blockingStub.withDeadline(Deadline.after(100, TimeUnit.MILLISECONDS)).greetWithDeadline(GreetWithDeadlineRequest.newBuilder().setGreeting(
+                    Greeting.newBuilder().setFirstName("Stephane")
+            ).build());
+            System.out.println(response.getResponse());
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+                System.out.println("Deadline has been exceeded, we don't want the response");
+            } else {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     private void doClientStreamingCall(ManagedChannel channel){
         CountDownLatch latch = new CountDownLatch(1);
@@ -102,8 +141,17 @@ public class GreetingClient {
     }
 
     private void doUnaryCall(ManagedChannel channel) {
+
+        try {
+            ManagedChannel securedChannel = NettyChannelBuilder
+                    .forAddress("localhost", 50051)
+                    .sslContext(GrpcSslContexts.forClient().trustManager(new File("ssl/ca.crt")).build())
+                    .build();
+
+
+
         GreetServiceGrpc.GreetServiceBlockingStub synGreetClient =
-                GreetServiceGrpc.newBlockingStub(channel);
+                GreetServiceGrpc.newBlockingStub(securedChannel);
 
         Greeting greeting = Greeting.newBuilder()
                 .setFirstName("Clapton")
@@ -116,6 +164,10 @@ public class GreetingClient {
 
          GreetResponse greetResponse = synGreetClient.greet(greetRequest);
          System.out.println(greetResponse.getResult());
+
+        } catch (SSLException e) {
+            e.printStackTrace();
+        }
 
     }
 
