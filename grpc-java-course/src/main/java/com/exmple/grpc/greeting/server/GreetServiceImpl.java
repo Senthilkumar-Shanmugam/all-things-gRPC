@@ -45,5 +45,57 @@ public class GreetServiceImpl extends GreetServiceImplBase {
             responseObserver.onCompleted();
         }
     }
+
+    @Override
+    public StreamObserver<LongGreetRequest> longGreet(StreamObserver<LongGreetResponse> responseObserver) {
+        StreamObserver<LongGreetRequest>  streamRequestObserver = new StreamObserver<LongGreetRequest>() {
+            String result = "";
+            @Override
+            public void onNext(LongGreetRequest value) {
+                //client message arrive
+                System.out.println("Client message arrived");
+                result += "Hello " + value.getGreeting().getFirstName()+ "!";
+            }
+
+            @Override
+            public void onError(Throwable t) {
+              //client error
+            }
+
+            @Override
+            public void onCompleted() {
+              //client is done sending. we could send response here
+                System.out.println("client is done sending messages");
+                responseObserver.onNext(LongGreetResponse.newBuilder().setResponse(result).build());
+                responseObserver.onCompleted();
+            }
+        };
+
+
+        return streamRequestObserver;
     }
+
+    @Override
+    public StreamObserver<GreetEveryoneRequest> greetEveryone(StreamObserver<GreetEveryoneResponse> responseObserver) {
+        StreamObserver<GreetEveryoneRequest>  requestStreamObserver = new StreamObserver<GreetEveryoneRequest>() {
+            @Override
+            public void onNext(GreetEveryoneRequest value) {
+                 String message = "Hello "+ value.getGreeting() +"!";
+                GreetEveryoneResponse response = GreetEveryoneResponse.newBuilder().setResult(message).build();
+                responseObserver.onNext(response);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+              //nothing
+            }
+
+            @Override
+            public void onCompleted() {
+               responseObserver.onCompleted();
+            }
+        };
+        return requestStreamObserver;
+    }
+}
 
