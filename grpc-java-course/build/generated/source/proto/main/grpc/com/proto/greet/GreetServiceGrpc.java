@@ -257,6 +257,7 @@ public final class GreetServiceGrpc {
     /**
      * <pre>
      *Greet with deadline
+     * This rpc will complete is no less than 300 seconds
      * </pre>
      */
     public void greetWithDeadline(com.proto.greet.GreetWithDeadlineRequest request,
@@ -370,6 +371,7 @@ public final class GreetServiceGrpc {
     /**
      * <pre>
      *Greet with deadline
+     * This rpc will complete is no less than 300 seconds
      * </pre>
      */
     public void greetWithDeadline(com.proto.greet.GreetWithDeadlineRequest request,
@@ -421,6 +423,7 @@ public final class GreetServiceGrpc {
     /**
      * <pre>
      *Greet with deadline
+     * This rpc will complete is no less than 300 seconds
      * </pre>
      */
     public com.proto.greet.GreetWithDeadlineResponse greetWithDeadline(com.proto.greet.GreetWithDeadlineRequest request) {
@@ -461,6 +464,7 @@ public final class GreetServiceGrpc {
     /**
      * <pre>
      *Greet with deadline
+     * This rpc will complete is no less than 300 seconds
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<com.proto.greet.GreetWithDeadlineResponse> greetWithDeadline(
